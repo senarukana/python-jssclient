@@ -3,7 +3,7 @@
 nepo.sdk.httpclient
 Created on Jul 8, 2013
 
-@author: huzheng@jd.com
+@auther: openinx@gmail.com
 '''
 
 from nepo.sdk import exceptions

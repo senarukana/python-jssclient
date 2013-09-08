@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 '''
-nepo.sdk.httpclient
 Created on Jul 8, 2013
 
 @auther: openinx@gmail.com
 '''
-
-from nepo.sdk import exceptions
-from nepo.sdk import utils
 
 from urllib import urlencode
 import logging

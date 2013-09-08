@@ -16,7 +16,7 @@ install_requires = [
 setup(
     name='python-jssclient',
     version=__version__,
-    description='Higher Level Zookeeper Client',
+    description='python client for JindDong Storage Service',
     long_description=README + '\n\n',
     author="openinx",
     author_email="openinx@gmail.com",

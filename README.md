@@ -1,6 +1,6 @@
 ### JSS: python client for Jingdong Storage Service
 
-For more detail for JSS , please visit (here)[http://man.jcloud.com/hosting/jss/index]
+For more detail for JSS , please visit [here](http://man.jcloud.com/hosting/jss/index)
 
 * Command-Line API
 * Python API

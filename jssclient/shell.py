@@ -169,11 +169,14 @@ class JSSHelpFormatter(argparse.HelpFormatter):
         super(JSSHelpFormatter, self).start_section(heading)
 
 
-if __name__ == '__main__':
+def main():
     try:
         JSSClientShell().main(sys.argv[1:])
     except Exception, e:
         #traceback.print_exc()
         print >> sys.stderr, "ERROR: %s" % unicode(e)
         sys.exit(1)
+
+if __name__ == '__main__':
+    main()
 

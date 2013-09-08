@@ -2,12 +2,12 @@
 
 
 
-jsscli  bucket-list  
-jsscli  bucket-create  <bucket-name>  
-jsscli  bucket-delete  <bucket-name>  
-jsscli  object-put  --bucket <bucket-name> --object <object-name>  --file <file-path>  
-jsscli  object-get  --bucket <bucke-namt> --object <object-name> --file <file-path>  
-jsscli  object-delete --bucket  <bucket-name> --object  <object-name>  
-jsscli  object-list  --bucket-name <bucket-name>  
+jss  bucket-list  
+jss  bucket-create  <bucket-name>  
+jss  bucket-delete  <bucket-name>  
+jss  object-put  --bucket <bucket-name> --object <object-name>  --file <file-path>  
+jss  object-get  --bucket <bucke-namt> --object <object-name> --file <file-path>  
+jss  object-delete --bucket  <bucket-name> --object  <object-name>  
+jss  object-list  --bucket-name <bucket-name>  
 
 

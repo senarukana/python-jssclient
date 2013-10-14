@@ -4,7 +4,8 @@ from jssclient import utils
 
 def do_bucket_list(cs, args):
     objs = cs.bucket_list()
-    utils.print_list(objs, ['Name', 'CreateDate'])
+    objs = objs['Buckets']
+    utils.print_list(objs, ['Name', 'CreationDate'])
 
     
 

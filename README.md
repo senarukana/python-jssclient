@@ -63,3 +63,12 @@ Quick-start using jss-client for python:
 >>> cl.bucket_list() 
 [...]
 ```
+
+
+### FAQs
+
+1.  `ImportError: No module named `pkg_resources` ? 
+```shell
+    curl -O https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
+    python ez_setup.py
+```

@@ -4,7 +4,7 @@ from jssclient import utils
 
 def do_bucket_list(cs, args):
     objs = cs.bucket_list()
-    utils.print_list(objs, ['name', 'createDate'])
+    utils.print_list(objs, ['Name', 'CreateDate'])
 
     
 
@@ -63,8 +63,8 @@ def do_object_delete(cs, args):
     help='Name of bucket for the objects')
 def do_object_list(cs, args):
     bobj = cs.object_list(args.bucket_name)
-    objs = bobj["contents"]
-    utils.print_list(objs, ["lastModified", 
-                            "eTag", 
-                            "key",
-                            "size"])
+    objs = bobj["Contents"]
+    utils.print_list(objs, ["LastModified", 
+                            "ETag", 
+                            "Key",
+                            "Size"])

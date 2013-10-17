@@ -6,6 +6,14 @@ For more detail for JSS , please visit [here](http://man.jcloud.com/hosting/jss/
 * Python API
 
 
+### Install
+
+```shell
+cd <path>/<to>/<your>/python-jssclient
+sudo python setup.py install
+```
+
+
 ### Command-Line  API
 First set three environment variables :
 ```

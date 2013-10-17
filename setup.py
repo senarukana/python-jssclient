@@ -10,6 +10,7 @@ with open(os.path.join(here, 'README.md')) as f:
     README = f.read()
 
 install_requires = [
+    "argparse>=1.2.1",
     "PrettyTable>=0.6,<0.8",
 ]
 

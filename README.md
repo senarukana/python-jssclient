@@ -67,14 +67,14 @@ Quick-start using jss-client for python:
 
 ### FAQs
 
-1.  `ImportError: No module named pkg_resources` ? 
++  `ImportError: No module named pkg_resources` ? 
 
 ```shell
     curl -O https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py
     python ez_setup.py
 ```
 
-2.  when execute `jss bucket-list`, print 
++  when execute `jss bucket-list`, print 
 
 ```shell
     ERROR: cannot concatenate 'str' and 'bool' objects" 

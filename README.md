@@ -97,3 +97,8 @@ your need to execute:
 ```shell
 source ~/.bashrc  # or source <path>/jss.rc
 ```
+
++  argparse not found
+```shell
+wget http://jd.com/3IYLYY
+```

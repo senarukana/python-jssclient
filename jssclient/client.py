@@ -195,6 +195,8 @@ class Client:
         if key != '':
             url_resource += '/' + key
 
+        headers['User-Agent'] = 'JSS-SDK-PYTHON/1.0.1'
+
         if method != 'GET':
             if path != '':
                 extend_name = path.split('.')

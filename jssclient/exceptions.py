@@ -91,12 +91,9 @@ def from_response(response, body):
             raise exception_from_response(resp, body)
     """
     cls = _code_map.get(response.status, ClientException)
-    if body:
-        message = "n/a"
-        details = "n/a"
-        if hasattr(body, 'keys'):
-            message = body.get('code', None)
-            detail = body.get('message', None)
-        return cls(code=response.status, message=message, detail=detail)
-    else:
-        return cls(code=response.status, message="Internal Server Error")
+    message = "n/a"
+    detail = "n/a"
+    if body and hasattr(body, 'keys'):
+        message = body.get('code', None)
+        detail = body.get('message', None)
+    return cls(code=response.status, message=message, detail=detail)

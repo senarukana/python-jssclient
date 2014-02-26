@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import json
 
 class ClientException(Exception):
     """
@@ -7,7 +8,7 @@ class ClientException(Exception):
     def __init__(self, code, message=None, detail=None):
         self.code = code
         self.message = message or self.__class__.message
-        self.detail = None
+        self.detail = detail
 
     def __str__(self):
         if self.message:
@@ -15,9 +16,11 @@ class ClientException(Exception):
                 return  "%s %s (HTTP %s)" % (self.message,
                                              self.detail,
                                              self.code)
-            return "%s (HTTP %s)"  % (self.message, self.code)
+            return "%s (HTTP %s)" % (self.message, self.code)
         return "HTTP %s" % self.code
 
+class CommandError(Exception):
+    pass
 
 class BadRequest(ClientException):
     """
@@ -79,7 +82,7 @@ _code_map = dict((c.http_status, c) for c in [BadRequest, Unauthorized,
                    Forbidden, NotFound, OverLimit, HTTPNotImplemented])
 
 
-def from_response(response, body):
+def from_response(status, body):
     """
     Return an instance of an ClientException or subclass
     based on an httplib2 response.
@@ -90,10 +93,16 @@ def from_response(response, body):
         if resp.status != 200:
             raise exception_from_response(resp, body)
     """
-    cls = _code_map.get(response.status, ClientException)
+    cls = _code_map.get(status, ClientException)
     message = "n/a"
     detail = "n/a"
-    if body and hasattr(body, 'keys'):
+    print '###', status, body, type(body)
+    try:
+        body = json.loads(body)
+    except:
+        pass
+    if body and isinstance(body, dict):
         message = body.get('code', None)
-        detail = body.get('message', None)
-    return cls(code=response.status, message=message, detail=detail)
+        detail = "%s (request-id: %s)" % (body.get('message', ''),
+                              body.get('requestId', ''))
+    return cls(code=status, message=message, detail=detail)

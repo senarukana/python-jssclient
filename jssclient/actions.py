@@ -1,13 +1,13 @@
-import json
 from jssclient import utils
-
 
 def do_bucket_list(cs, args):
     objs = cs.bucket_list()
     objs = objs['Buckets']
-    utils.print_list(objs, ['Name', 'CreationDate'])
-
-    
+    # print objs
+    # print type(objs[0])
+    utils.print_list(objs, ['Name',
+                            'CreationDate',
+                            'Location'])
 
 @utils.arg('bucket_name',
     metavar='<bucket>',
@@ -65,7 +65,7 @@ def do_object_delete(cs, args):
 def do_object_list(cs, args):
     bobj = cs.object_list(args.bucket_name)
     objs = bobj["Contents"]
-    utils.print_list(objs, ["LastModified", 
-                            "ETag", 
+    utils.print_list(objs, ["LastModified",
+                            "ETag",
                             "Key",
                             "Size"])

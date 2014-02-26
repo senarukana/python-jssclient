@@ -35,20 +35,16 @@ def add_arg(f, *args, **kwargs):
         # to the options list positional options will appear to be backwards.
         f.arguments.insert(0, (args, kwargs))
 
-def print_list(objs, fields, sortby_index=None):
-    if sortby_index == None:
-        sortby = None
-    else:
-        sortby = fields[sortby_index]
+def print_list(objs, fields):
     pt = prettytable.PrettyTable([f for f in fields], caching=False)
     pt.align = 'l'
 
     for o in objs:
         row = []
         for field in fields:
-            #data = getattr(o, field, None)
+            # data = getattr(o, field, None)
             data = o[field]
             row.append(data)
+        # print row
         pt.add_row(row)
-
-    print pt.get_string(sortby=sortby)
+    print pt.get_string()

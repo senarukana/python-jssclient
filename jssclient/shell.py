@@ -1,5 +1,5 @@
 import sys
-import argparse 
+import argparse
 import jssclient
 import traceback
 from jssclient import utils
@@ -7,11 +7,9 @@ from jssclient import exceptions as exc
 from jssclient import actions
 from jssclient import client
 
-
 """
 Command-line interface to the Jindong Storage Service (JSS) API.
 """
-
 
 class JSSClientArgumentParser(argparse.ArgumentParser):
 
@@ -25,7 +23,7 @@ class JSSClientArgumentParser(argparse.ArgumentParser):
         exits.
         """
         self.print_usage(sys.stderr)
-        #FIXME(lzyeval): if changes occur in argparse.ArgParser._check_value
+        # FIXME(lzyeval): if changes occur in argparse.ArgParser._check_value
         choose_from = ' (choose from'
         progparts = self.prog.partition(' ')
         self.exit(2, "error: %(errmsg)s\nTry '%(mainp)s help %(subp)s'"
@@ -58,7 +56,7 @@ class JSSClientShell(object):
                             version=jssclient.__version__)
 
         parser.add_argument('--jss-access-key',
-            #metavar='<auth-access-key>',
+            # metavar='<auth-access-key>',
             default=utils.env('JSS_ACCESS_KEY', default=False),
             action='store_true',
             help='Defaults to env[JSS_ACCESS_KEY].')
@@ -66,7 +64,7 @@ class JSSClientShell(object):
             help=argparse.SUPPRESS)
 
         parser.add_argument('--jss-secret-key',
-            #metavar='<auth-secret-key>',
+            # metavar='<auth-secret-key>',
             default=utils.env('JSS_SECRET_KEY', default=False),
             action='store_true',
             help='Defaults to env[JSS_SECRET_KEY].')
@@ -74,7 +72,7 @@ class JSSClientShell(object):
             help=argparse.SUPPRESS)
 
         parser.add_argument('--jss-url',
-            #metavar='<jss-service-url>',
+            # metavar='<jss-service-url>',
             default=utils.env('JSS_URL', 'JSS_URL'),
             help='Defaults to env[JSS_URL].')
         parser.add_argument('--jss_url',
@@ -136,11 +134,19 @@ class JSSClientShell(object):
             self.parser.print_help()
 
 
-    
+
     def main(self, argv):
         parser = self.get_base_parser()
         (options, args) = parser.parse_known_args(argv)
-        #self.setup_debugging(options.debug)
+        # self.setup_debugging(options.debug)
+        if not options.jss_url:
+            raise exc.CommandError('JSS_URL can not be null or empty string.')
+        if not options.jss_access_key:
+            raise exc.CommandError('JSS_ACCESS_KEY can not be null or empty '
+                                   'string.')
+        if not options.jss_secret_key:
+            raise exc.CommandError('JSS_SECRET_KEY can not be null or empty '
+                                   'string')
 
         subcommand_parser = self.get_subcommand_parser()
         self.parser = subcommand_parser
@@ -155,9 +161,9 @@ class JSSClientShell(object):
             self.do_help(args)
             return 0
 
-        self.cs = client.Client(options.jss_access_key,
-                                options.jss_secret_key,
-                                options.jss_url)
+        self.cs = client.Client(options.jss_url,
+                                options.jss_access_key,
+                                options.jss_secret_key)
 
         args.func(self.cs, args)
 
@@ -168,12 +174,11 @@ class JSSHelpFormatter(argparse.HelpFormatter):
         heading = '%s%s' % (heading[0].upper(), heading[1:])
         super(JSSHelpFormatter, self).start_section(heading)
 
-
 def main():
     try:
         JSSClientShell().main(sys.argv[1:])
     except Exception, e:
-        #traceback.print_exc()
+        traceback.print_exc()
         print >> sys.stderr, "ERROR: %s" % unicode(e)
         sys.exit(1)
 

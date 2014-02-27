@@ -123,7 +123,7 @@ class HTTPClient:
         self.http_log_response(status, headers)
         return resp
 
-    def get_request_conn(self, method, resource, headers):
+    def get_request_conn(self, method, resource, headers={}):
         conn = httplib.HTTPConnection(self.hostname)
         if 'Content-Type' not in headers:
             headers['Content-Type'] = 'application/json'
@@ -131,7 +131,7 @@ class HTTPClient:
             headers['Content-Length'] = 0
         headers['User-Agent'] = 'JSS-SDK-PYTHON/1.0.1'
         headers['Date'] = timestamp()
-        print headers
+        # print headers
         headers['Authorization'] = self.get_token(method,
                                                   '',
                                                   headers['Content-Type'],

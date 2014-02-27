@@ -64,7 +64,7 @@ def get_httpclient():
     return httpclient.HTTPClient(config['hostname'],
                                  config['jss_access_key'],
                                  config['jss_secret_key'],
-                                 http_log_debug=True)
+                                 http_log_debug=False)
 
 
 class HttpClientTestCase(unittest.TestCase):
@@ -204,7 +204,7 @@ def part_upload(bucket_name, object_name, upload_id):
 def complete_upload(bucket_name, object_name, upload_id, part_dict):
     resource = '/%s/%s?uploadId=%s' % (bucket_name, object_name, upload_id)
     cli = get_httpclient()
-    ans = cli.post(resource, body=part_dict)
+    ans = cli.post(resource, body=sorted(part_dict))
     print json.dumps(ans, indent=4)
 
 def abort_multipart_upload(bucket_name, object_name, upload_id):
@@ -254,23 +254,53 @@ def list_multipart_uploads(bucket_name):
     print json.dumps(ans, indent=4)
 
 
+def object_get_range(bucket_name, object_name, io_buffer_size=64 * 1024):
+    # headers['Range'] = 'Bytes=' + str(start_pos) + '-' + str(end_pos)
+    resource = '/%s/%s' % (bucket_name, object_name)
+    cli = get_httpclient()
+    conn = cli.get_request_conn('GET', resource)
+    response = conn.getresponse()
+    print response.status, dict(response.getheaders())
+    headers = dict(response.getheaders())
+    content_length = int(headers['content-length'])
+    print 'Content-Length from Server Headers:%s' % content_length
+    response.close()
+    with open('/home/hz/test/index.html', 'w') as fd:
+        start_pos = 0
+        end_pos = io_buffer_size
+        while start_pos < content_length:
+            cli = get_httpclient()
+            bytes_str = None
+            print 'DEBUG:#', end_pos, content_length, end_pos <= content_length
+            if end_pos >= content_length:
+                print '*' * 32
+                bytes_str = 'bytes=%s-' % start_pos
+            else:
+                bytes_str = 'bytes=%s-%s' % (start_pos, end_pos - 1)
+            headers = {'Range': bytes_str}
+            print bytes_str, content_length
+            conn = cli.get_request_conn('GET', resource, headers)
+            resp = conn.getresponse()
+            if resp.status >= 400:
+                raise Exception('Error:%s' % resp.read())
+            data = resp.read()
+            read_size = len(data)
+            if read_size <= 0:
+                break
+            print '###Get data from server:%s' % read_size
+            fd.write(data)
+            start_pos = end_pos
+            end_pos += read_size
+            resp.close()
+
+
 def main():
     bucket_name = 'jss'
-
     object_name = 'quick-object-put'
     upload_id = 'A3C3D598BDB0E114'
-
-
+    object_get_range('jss', 'index')
     list_multipart_uploads(bucket_name)
-
-    # upload_id = quick_object_put(bucket_name, object_name)
-    # part_dict = part_upload(bucket_name, object_name, upload_id)
     list_parts(bucket_name, object_name, upload_id)
-
-    # abort_multipart_upload(bucket_name, object_name, upload_id)
-
-    # complete_upload(bucket_name, object_name, upload_id, part_dict)
-
 
 if __name__ == '__main__':
     main()

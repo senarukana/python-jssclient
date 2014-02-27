@@ -1,4 +1,5 @@
 import os
+import eventlet
 
 from jssclient import mime_type
 from jssclient import exceptions
@@ -12,12 +13,22 @@ class Client:
                  http_log_debug=False,
                  io_buffer_size=64 * 1024,
                  chunck_size=16 * 1024 * 1024):
+        self.hostname = hostname
+        self.access_key = access_key
+        self.secret_key = secret_key
+        self.http_log_debug = http_log_debug
         self.conn = httpclient.HTTPClient(hostname,
                                           access_key,
                                           secret_key,
                                           http_log_debug=http_log_debug)
         self.io_buffer_size = io_buffer_size
         self.chunck_size = chunck_size
+
+    def new_httpclient(self):
+        return httpclient.HTTPClient(self.hostname,
+                                     self.access_key,
+                                     self.secret_key,
+                                     self.http_log_debug)
 
     def bucket_create(self, bucket_name):
         resource = '/%s' % bucket_name
@@ -51,7 +62,6 @@ class Client:
         print response.status
         if response.status >= 400:
             raise exceptions.from_response(response.status, body=response.read())
-        print response.read()
 
     def object_delete(self, bucket_name, object_name):
         resource = '/%s/%s' % (bucket_name, object_name)
@@ -85,3 +95,66 @@ class Client:
                     break
                 fd.write(data)
             conn.close()
+
+    def big_object_put(self, bucket_name, object_name,
+                       file_path=None, thread_size=10,
+                       io_buffer_size=32 * 1024 * 1024):
+        pass
+
+    def big_object_get(self, bucket_name, object_name,
+                       file_path=None, thread_size=4,
+                       io_buffer_size=32 * 1024 * 124):
+        if not file_path:
+            file_path = object_name
+
+        if os.path.exists(file_path): os.remove(file_path)
+
+        # Get the total length of the big object
+        resource = '/%s/%s' % (bucket_name, object_name)
+        conn = self.conn.get_request_conn('GET', resource)
+        response = conn.getresponse()
+        if response.status >= 400:
+            raise exceptions.from_response(response.status,
+                                           body=response.read())
+        content_length = int(dict(response.getheaders())['content-length'])
+        print 'total size:', content_length
+
+
+        # Inner Method, Download a io_buffer_size piece of data and write file.
+        def get_piece(start_pos, end_pos):
+            if end_pos >= content_length:
+                bytes_str = 'bytes=%s-' % start_pos
+            else:
+                bytes_str = 'bytes=%s-%s' % (start_pos, end_pos - 1)
+            headers = {'Range': bytes_str}
+            print bytes_str
+            cli = self.new_httpclient()
+            cli_conn = cli.get_request_conn('GET', resource, headers)
+            resp = cli_conn.getresponse()
+            if resp.status >= 400:
+                raise exceptions.from_response(resp.status, resp.read())
+            data = resp.read()
+            data_size = len(data)
+            if data_size <= 0:
+                return
+            with open(file_path, 'awb') as fd:
+                fd.seek(start_pos)
+                fd.write(data)
+            resp.close()
+
+        # start position, end position
+        green_pool = eventlet.GreenPool(thread_size)
+        start_pos = 0
+        end_pos = io_buffer_size
+        while start_pos < content_length:
+            green_pool.spawn(get_piece, start_pos, end_pos)
+            start_pos = end_pos
+            end_pos += io_buffer_size
+
+        # Wait all green finished
+        green_pool.waitall()
+        local_size = os.path.getsize(file_path)
+        error_msg = 'Size of local object(%s bytes) is not different from'\
+        ' the size of remote jss object(%s bytes)' % (local_size,
+                                                      content_length)
+        assert local_size == content_length, error_msg

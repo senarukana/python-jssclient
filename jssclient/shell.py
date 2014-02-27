@@ -176,7 +176,7 @@ def main():
     try:
         JSSClientShell().main(sys.argv[1:])
     except Exception, e:
-        # traceback.print_exc()
+        traceback.print_exc()
         print >> sys.stderr, "ERROR: %s" % unicode(e)
         sys.exit(1)
 

@@ -1,4 +1,5 @@
 import uuid
+import json
 import unittest
 from jssclient import httpclient
 
@@ -153,31 +154,123 @@ def list_objects():
         print content['Key']
 
 
-def put_object():
+def quick_object_put(bucket_name, object_name):
+    """
+    {
+        "Bucket": "jss", 
+        "UploadId": "A3C3D598BDB0E114", 
+        "Key": "quick-object-put"
+    }
+    """
     cli = get_httpclient()
-    # cli.put(resource, body, headers, readed)
+    resource = '/%s/%s?uploads' % (bucket_name, object_name)
+    ans = cli.post(resource)
+    upload_id = ans['UploadId']
+    return upload_id
+
+
+def part_upload(bucket_name, object_name, upload_id):
+    cli = get_httpclient()
+    part_dict = {'Part': []}
+    parts = []
+    with open('/home/hz/qpress-dic/aio.hpp', 'rb') as  fd:
+        part_number = 1
+        while True:
+            data = fd.read(128)
+            if not data:
+                break
+            # print len(data)
+            resource = '/%s/%s?partNumber=%s&uploadId=%s' % (bucket_name, object_name, part_number, upload_id)
+            headers = {'Content-Length': len(data)}
+            conn = cli.get_request_conn('PUT', resource, headers)
+            conn.send(data)
+            resp = conn.getresponse()
+            headers = dict(resp.getheaders())
+            if resp.status >= 400:
+                raise Exception('Error: %s' % resp.read())
+
+            parts.append({'PartNumber': part_number,
+                          'ETag': headers['etag'].strip('"')})
+
+            body = resp.read()
+            print '###', body, '##'
+            # body = json.loads(resp.read())
+            print type(headers), type(body)
+            part_number += 1
+
+    part_dict['Part'] = parts
+    return part_dict
+
+def complete_upload(bucket_name, object_name, upload_id, part_dict):
+    resource = '/%s/%s?uploadId=%s' % (bucket_name, object_name, upload_id)
+    cli = get_httpclient()
+    ans = cli.post(resource, body=part_dict)
+    print json.dumps(ans, indent=4)
+
+def abort_multipart_upload(bucket_name, object_name, upload_id):
+    resource = '/%s/%s?uploadId=%s' % (bucket_name, object_name, upload_id)
+    cli = get_httpclient()
+    ans = cli.delete(resource)
+    print 'Abort Multipart upload:' , ans
+
+
+def list_parts(bucket_name, object_name, upload_id):
+    """
+    {
+        "UploadId": "A3C3D598BDB0E114", 
+        "Part": [], 
+        "Bucket": "jss", 
+        "Key": "quick-object-put"
+    }
+    """
+    resource = '/%s/%s?uploadId=%s' % (bucket_name, object_name, upload_id)
+    cli = get_httpclient()
+    ans = cli.get(resource)
+    print json.dumps(ans, indent=4)
+
+
+def list_multipart_uploads(bucket_name):
+    """
+    {
+        "Prefix": null, 
+        "Bucket": "jss", 
+        "Upload": [
+            {
+                "UploadId": "AA2C3A6634CA4746", 
+                "Initiated": "Thu, 27 Feb 2014 02:55:36 GMT", 
+                "Key": "oracle-jdk.tar.gz"
+            }, 
+            {
+                "UploadId": "A3C3D598BDB0E114", 
+                "Initiated": "Thu, 27 Feb 2014 02:42:51 GMT", 
+                "Key": "quick-object-put"
+            }
+        ]
+    }
+    """
+    resource = '/%s?uploads' % (bucket_name)
+    cli = get_httpclient()
+    ans = cli.get(resource)
+    print json.dumps(ans, indent=4)
 
 
 def main():
-    list_buckets()
-    # list_objects()
-    # create_buckets()
-    # print '*' * 80
-    # list_buckets()
+    bucket_name = 'jss'
 
-    # print '*' * 80
-    # delete_buckets()
+    object_name = 'quick-object-put'
+    upload_id = 'A3C3D598BDB0E114'
 
 
-    # print '*' * 80
-    # list_buckets()
+    list_multipart_uploads(bucket_name)
 
-    # cli = get_httpclient()
-    # ans = cli.get('/', readed=True)
-    # for bucket in ans['Buckets']:
-    #    print bucket['Name']
-    # cli.put('/huzheng-%s' % gen_uuid())
-    pass
+    # upload_id = quick_object_put(bucket_name, object_name)
+    # part_dict = part_upload(bucket_name, object_name, upload_id)
+    list_parts(bucket_name, object_name, upload_id)
+
+    # abort_multipart_upload(bucket_name, object_name, upload_id)
+
+    # complete_upload(bucket_name, object_name, upload_id, part_dict)
+
 
 if __name__ == '__main__':
     main()

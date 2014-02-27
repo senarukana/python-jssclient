@@ -140,13 +140,11 @@ class JSSClientShell(object):
         (options, args) = parser.parse_known_args(argv)
         # self.setup_debugging(options.debug)
         if not options.jss_url:
-            raise exc.CommandError('JSS_URL can not be null or empty string.')
+            raise exc.CommandError('JSS_URL can not be none.')
         if not options.jss_access_key:
-            raise exc.CommandError('JSS_ACCESS_KEY can not be null or empty '
-                                   'string.')
+            raise exc.CommandError('JSS_ACCESS_KEY can not be none.')
         if not options.jss_secret_key:
-            raise exc.CommandError('JSS_SECRET_KEY can not be null or empty '
-                                   'string')
+            raise exc.CommandError('JSS_SECRET_KEY can not be none.')
 
         subcommand_parser = self.get_subcommand_parser()
         self.parser = subcommand_parser
@@ -178,7 +176,7 @@ def main():
     try:
         JSSClientShell().main(sys.argv[1:])
     except Exception, e:
-        traceback.print_exc()
+        # traceback.print_exc()
         print >> sys.stderr, "ERROR: %s" % unicode(e)
         sys.exit(1)
 

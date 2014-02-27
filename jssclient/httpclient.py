@@ -73,6 +73,7 @@ class HTTPClient:
 
     def get_token(self, method, content_md5, content_type, datenow, resource):
         buf = [method, content_md5, content_type, datenow, resource]
+        # for i in buf: print type(i)
         buf_str = '\n'.join(buf)
         hashv = hmac.new(self.secret_key, buf_str, hashlib.sha1).digest()
         signature = base64.encodestring(hashv).strip()
@@ -100,6 +101,8 @@ class HTTPClient:
             resource = '%s?%s' % (resource, urllib.urlencode(kwargs))
 
         body = json.dumps(body) if body else None
+        if headers['Content-Length'] == 0 and body:
+            headers['Content-Length'] = len(body)
         debug_url = 'http://%s%s' % (self.hostname, resource)
         self.http_log_request(debug_url, method, headers=headers, body=body)
 
@@ -128,6 +131,7 @@ class HTTPClient:
             headers['Content-Length'] = 0
         headers['User-Agent'] = 'JSS-SDK-PYTHON/1.0.1'
         headers['Date'] = timestamp()
+        print headers
         headers['Authorization'] = self.get_token(method,
                                                   '',
                                                   headers['Content-Type'],
@@ -147,7 +151,7 @@ class HTTPClient:
                              readed=readed, kwargs=kwargs)
 
     def post(self, resource, body={}, headers={}, readed=True):
-        return self._request('POST', resource, body, headers)
+        return self._request('POST', resource, body, headers, readed=readed)
 
     def delete(self, resource, body={}, headers={}, readed=True):
         return self._request('DELETE', resource, body, headers, readed=readed)

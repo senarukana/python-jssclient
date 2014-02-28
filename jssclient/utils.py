@@ -42,9 +42,7 @@ def print_list(objs, fields):
     for o in objs:
         row = []
         for field in fields:
-            # data = getattr(o, field, None)
             data = o[field]
             row.append(data)
-        # print row
         pt.add_row(row)
     print pt.get_string()

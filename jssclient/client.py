@@ -168,7 +168,6 @@ class Client:
             else:
                 bytes_str = 'bytes=%s-%s' % (start_pos, end_pos - 1)
             headers = {'Range': bytes_str}
-            print bytes_str
             cli = self.new_httpclient()
             cli_conn = cli.get_request_conn('GET', resource, headers)
             resp = cli_conn.getresponse()

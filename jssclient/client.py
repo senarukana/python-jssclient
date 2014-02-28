@@ -123,7 +123,7 @@ class Client:
             end_pos = io_buffer_size
             # Create a new green pool
             green_pool = eventlet.GreenPool(thread_size)
-            part_index = 0
+            part_index = 1
             with open(file_path, 'rb') as fd:
                 while start_pos < total_size:
                     data = fd.read(end_pos - start_pos)

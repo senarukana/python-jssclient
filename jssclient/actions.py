@@ -20,7 +20,7 @@ def do_bucket_create(cs, args):
 def do_bucket_delete(cs, args):
     cs.bucket_delete(args.bucket_name)
 
-@utils.arg('--file_path',
+@utils.arg('--file',
     metavar='<file-path>',
     default=None,
     help='the path of file to upload to the bucket')
@@ -31,9 +31,9 @@ def do_bucket_delete(cs, args):
     metavar='<object>',
     help='Name of object to delete')
 def do_put(cs, args):
-    cs.object_put(args.bucket_name, args.object_name, args.file_path)
+    cs.object_put(args.bucket_name, args.object_name, args.file)
 
-@utils.arg('--file_path',
+@utils.arg('--file',
     metavar='<file-path>',
     default=None,
     help='the path of file for the object to name')
@@ -44,7 +44,7 @@ def do_put(cs, args):
     metavar='<object>',
     help='Name of object to delete')
 def do_get(cs, args):
-    cs.object_get(args.bucket_name, args.object_name, args.file_path)
+    cs.object_get(args.bucket_name, args.object_name, args.file)
 
 
 @utils.arg('bucket_name',
@@ -74,15 +74,15 @@ def do_object_list(cs, args):
 @utils.arg('object_name',
     metavar='<object>',
     help='Object name')
-@utils.arg('--file_path',
+@utils.arg('--file',
     metavar='<file-path>',
     help='the path of file where object write')
-@utils.arg('--thread_size',
-    metavar='<thread_size>',
+@utils.arg('--thread-size',
+    metavar='<thread-size>',
     default=8,
     help='the number of thread to download the object and merge them to a file')
-@utils.arg('--io_buffer_size',
-    metavar='<io-buffer-size>',
+@utils.arg('--part-size',
+    metavar='<part-size>',
     default=128 * 1024 * 1024,
     help='the size(bytes) of piece data for each thread')
 def do_big_put(cs, args):
@@ -97,8 +97,8 @@ def do_big_put(cs, args):
     default=8,
     help='the number of thread to download the object and merge them to a file'
     ' . default is 8')
-@utils.arg('--io_buffer_size',
-    metavar='<io-buffer-size>',
+@utils.arg('--part-size',
+    metavar='<part-size>',
     default=128 * 1024 * 1024,
     help='the size(bytes) of piece data for each thread, default is 128M')
 @utils.arg('bucket_name',
@@ -107,13 +107,13 @@ def do_big_put(cs, args):
 @utils.arg('object_name',
     metavar='<object>',
     help='Object name')
-@utils.arg('--file_path',
+@utils.arg('--file',
     metavar='<file-path>',
     default=None,
     help='the path of file where object write')
 def do_big_get(cs, args):
     cs.big_object_get(args.bucket_name,
                       args.object_name,
-                      args.file_path,
+                      args.file,
                       int(args.thread_size),
                       int(args.io_buffer_size))

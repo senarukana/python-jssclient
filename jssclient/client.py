@@ -162,7 +162,7 @@ class Client:
                                            body=response.read())
         content_length = int(dict(response.getheaders())['content-length'])
 
-        # Inner Method, Download a io_buffer_size piece of data and write file.
+        # Inner Method, Download a part_size piece of data and write file.
         @utils.retries(5)
         def get_piece(start_pos, end_pos):
             if end_pos >= content_length:

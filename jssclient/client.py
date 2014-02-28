@@ -1,6 +1,7 @@
 import os
 import eventlet
 
+from jssclient import utils
 from jssclient import mime_type
 from jssclient import exceptions
 from jssclient import httpclient
@@ -13,7 +14,7 @@ class Client:
     def __init__(self, hostname, access_key, secret_key,
                  http_log_debug=True,
                  io_buffer_size=64 * 1024,
-                 chunck_size=16 * 1024 * 1024):
+                 retries=5, sleep_time=0.1):
         self.hostname = hostname
         self.access_key = access_key
         self.secret_key = secret_key
@@ -23,7 +24,7 @@ class Client:
                                           secret_key,
                                           http_log_debug=http_log_debug)
         self.io_buffer_size = io_buffer_size
-        self.chunck_size = chunck_size
+        self.retries = retries
 
     def new_httpclient(self):
         return httpclient.HTTPClient(self.hostname,
@@ -99,7 +100,7 @@ class Client:
 
     def big_object_put(self, bucket_name, object_name,
                        file_path=None, thread_size=8,
-                       io_buffer_size=128 * 1024 * 1024):
+                       part_size=128 * 1024 * 1024):
         if not file_path:
             file_path = object_name
         total_size = os.path.getsize(file_path)
@@ -120,7 +121,7 @@ class Client:
         # divide file and upload in a green pool
         try:
             start_pos = 0
-            end_pos = io_buffer_size
+            end_pos = part_size
             # Create a new green pool
             green_pool = eventlet.GreenPool(thread_size)
             part_index = 1
@@ -131,7 +132,7 @@ class Client:
                                      end_pos, part_index, data)
                     part_index += 1
                     start_pos = end_pos
-                    end_pos += io_buffer_size
+                    end_pos += part_size
             parts_dict = {'Part': parts}
         except:
             # abort multi-part upload
@@ -146,7 +147,7 @@ class Client:
 
     def big_object_get(self, bucket_name, object_name,
                        file_path=None, thread_size=4,
-                       io_buffer_size=32 * 1024 * 124):
+                       part_size=32 * 1024 * 124):
         if not file_path:
             file_path = object_name
 
@@ -162,6 +163,7 @@ class Client:
         content_length = int(dict(response.getheaders())['content-length'])
 
         # Inner Method, Download a io_buffer_size piece of data and write file.
+        @utils.retries(5)
         def get_piece(start_pos, end_pos):
             if end_pos >= content_length:
                 bytes_str = 'bytes=%s-' % start_pos
@@ -173,23 +175,28 @@ class Client:
             resp = cli_conn.getresponse()
             if resp.status >= 400:
                 raise exceptions.from_response(resp.status, resp.read())
-            data = resp.read()
-            data_size = len(data)
-            if data_size <= 0:
-                return
+
+            # receive 64K every time
             with open(file_path, 'awb') as fd:
                 fd.seek(start_pos)
-                fd.write(data)
+                start = 0
+                while start < (end_pos - start_pos):
+                    data = resp.read(self.io_buffer_size)
+                    if len(data) <= 0:
+                        break
+                    fd.write(data)
+                    start += self.io_buffer_size
+            # close socket
             resp.close()
 
         # start position, end position
         green_pool = eventlet.GreenPool(thread_size)
         start_pos = 0
-        end_pos = io_buffer_size
+        end_pos = part_size
         while start_pos < content_length:
             green_pool.spawn(get_piece, start_pos, end_pos)
             start_pos = end_pos
-            end_pos += io_buffer_size
+            end_pos += part_size
 
         # Wait all green finished
         green_pool.waitall()
@@ -204,13 +211,28 @@ class Client:
         resource = '/%s/%s?uploads' % (bucket_name, object_name)
         return self.conn.post(resource)['UploadId']
 
+    @utils.retries(5)
     def upload_part(self, bucket_name, object_name, upload_id, part_id, data):
         resrc_format = '/%s/%s?partNumber=%s&uploadId=%s'
         resource = resrc_format % (bucket_name, object_name,
                                    part_id, upload_id)
         headers = {'Content-Length': len(data)}
         conn = self.conn.get_request_conn('PUT', resource , headers)
-        conn.send(data)
+
+        start = 0
+        data_len = len(data)
+
+        # Send 64K buffer every time.
+        while start < data_len:
+            end = start + self.io_buffer_size
+            if end >= data_len:
+                buf = data[start:]
+            else:
+                buf = data[start:end]
+            conn.send(buf)
+            start += self.io_buffer_size
+
+        # Get response
         resp = conn.getresponse()
         if resp.status >= 400:
             raise exceptions.from_response(resp.status, resp.read())
@@ -275,3 +297,4 @@ class Client:
         """
         resource = '/%s?uploads' % bucket_name
         return self.conn.get(resource)
+

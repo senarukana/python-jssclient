@@ -70,6 +70,28 @@ def do_object_list(cs, args):
                             "Key",
                             "Size"])
 
+@utils.arg('bucket_name',
+    metavar='<bucket>',
+    help='Bucket name')
+@utils.arg('object_name',
+    metavar='<object>',
+    help='Object name')
+@utils.arg('file_path',
+    metavar='<file-path>',
+    help='the path of file where object write')
+@utils.arg('thread_size',
+    metavar='<thread-size>',
+    help='the number of thread to download the object and merge them to a file')
+@utils.arg('io_buffer_size',
+    metavar='<io-buffer-size>',
+    help='the size(bytes) of piece data for each thread')
+def do_big_object_put(cs, args):
+    cs.big_object_put(args.bucket_name,
+                      args.object_name,
+                      args.file_path,
+                      int(args.thread_size),
+                      int(args.io_buffer_size))
+
 
 @utils.arg('bucket_name',
     metavar='<bucket>',

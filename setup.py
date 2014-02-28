@@ -12,6 +12,7 @@ with open(os.path.join(here, 'README.md')) as f:
 install_requires = [
     "argparse>=1.2.1",
     "PrettyTable>=0.6,<0.8",
+    "eventlet>=0.13.0",
 ]
 
 setup(

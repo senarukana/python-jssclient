@@ -88,11 +88,11 @@ def do_object_list(cs, args):
 def do_big_put(cs, args):
     cs.big_object_put(args.bucket_name,
                       args.object_name,
-                      args.file_path,
+                      args.file,
                       int(args.thread_size),
-                      int(args.io_buffer_size))
+                      int(args.part_size))
 
-@utils.arg('--thread_size',
+@utils.arg('--thread-size',
     metavar='<thread-size>',
     default=8,
     help='the number of thread to download the object and merge them to a file'
@@ -116,4 +116,4 @@ def do_big_get(cs, args):
                       args.object_name,
                       args.file,
                       int(args.thread_size),
-                      int(args.io_buffer_size))
+                      int(args.part_size))

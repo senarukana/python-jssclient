@@ -56,27 +56,23 @@ class JSSClientShell(object):
                             version=jssclient.__version__)
 
         parser.add_argument('--jss-access-key',
-            # metavar='<auth-access-key>',
             default=utils.env('JSS_ACCESS_KEY', default=False),
-            action='store_true',
             help='Defaults to env[JSS_ACCESS_KEY].')
-        parser.add_argument('--jss_access_key',
-            help=argparse.SUPPRESS)
+
+        parser.add_argument(
+            '--debug',
+            default=False,
+            action='store_true',
+            help='Print debugging output'
+        )
 
         parser.add_argument('--jss-secret-key',
-            # metavar='<auth-secret-key>',
             default=utils.env('JSS_SECRET_KEY', default=False),
-            action='store_true',
             help='Defaults to env[JSS_SECRET_KEY].')
-        parser.add_argument('--jss_secret_key',
-            help=argparse.SUPPRESS)
 
         parser.add_argument('--jss-url',
-            # metavar='<jss-service-url>',
             default=utils.env('JSS_URL', 'JSS_URL'),
             help='Defaults to env[JSS_URL].')
-        parser.add_argument('--jss_url',
-            help=argparse.SUPPRESS)
 
         return parser
 
@@ -161,7 +157,8 @@ class JSSClientShell(object):
 
         self.cs = client.Client(options.jss_url,
                                 options.jss_access_key,
-                                options.jss_secret_key)
+                                options.jss_secret_key,
+                                options.debug)
 
         args.func(self.cs, args)
 
